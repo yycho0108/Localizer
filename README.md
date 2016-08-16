@@ -1,6 +1,6 @@
 # Localizer
 
-Localization based on Udacity CS373 class.
+Localization based on Udacity CS373 class : Artificial Intelligence for Robotics.
 
 The agent simply repeats sensing and navigating the world,
 
