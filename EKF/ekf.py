@@ -16,12 +16,12 @@ def dot(*args):
         lhs = np.dot(lhs,rhs)
     return lhs
 
-dt = 0.3 # delta time
+dt = 0.5 # delta time
 
 F = np.identity(4)
 
 F[0][2] = F[1][3] = dt # px += vx*dt, py += vy*dt
-F[2][2] = F[3][3] = 0.99 # Velocity decreases
+F[2][2] = F[3][3] = 0.99 # Velocity decreases arbitrarily
 
 G = np.asarray([ # Converts acceleration Commands
             [0.,0.],
@@ -49,9 +49,10 @@ def predict(x,P,u):
     # G = system processing
     # u = commands (velocity input), external motion
     # P = Confidence (probability)
-    # Q = Noise Covariance
-    x = dot(F,x) + dot(G,u) 
-    P = dot(F,P,F.T) # + Q
+    # V = Noise Covariance
+    V = np.identity(4)
+    x = dot(F,x) + dot(G,u)
+    P = dot(F,P,F.T) # + V
 
     return x,P
 
@@ -60,13 +61,14 @@ def update(x,P,y):
     # W = measurement uncertainty covariance
     # R = "WEIGHT" of sensor estimate belief
     # y = measurement
-
+    W = np.identity(2)
     v = y - dot(H,x) # error
-    print v
-    S = dot(H,P,H.T) # + W
+    S = dot(H,P,H.T) + W
+    #print S
     R = dot(P,H.T,np.linalg.pinv(S))
     x = x + dot(R,v)
     P = P - dot(R,H,P)
+    print y, P
 
     return x,P
 
@@ -101,7 +103,7 @@ def main():
     x = colvec(100.,100.,0.,0.) # initially at (0,0) with velocity (0,0)
     x_real = colvec(100.,100.,0.,0.) # real x
 
-    P = 1000 * np.identity(4) # Uncertainty, error covariance matrix
+    P = 10 * np.identity(4) # Uncertainty, error covariance matrix
 
     W = 200
     H = 200
@@ -117,7 +119,7 @@ def main():
     pygame.display.set_caption('EKF Demo')
 
     while True:
-        #y = x[2:].copy()
+        y = x[2:].copy()
         x,P = update(x,P,y) # y = measurement -- measures velocity
 
         u = get_command() 
